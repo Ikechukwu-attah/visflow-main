@@ -1,0 +1,61 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String  @id @default(uuid()) @db.Uuid // ✅ Ensure UUID type
+  fullname    String
+  email       String  @unique
+  password    String
+  verifyToken String?
+  resetToken  String?
+
+  isVerified         Boolean             @default(false)
+  role               String              @default("user")
+  refreshToken       String?
+  createdAt          DateTime            @default(now())
+  documents          Document[] // ✅ Keep plural for clarity
+  generatedDocuments GeneratedDocument[] // Add opposite relation field
+}
+
+model Document {
+  id                    String   @id @default(uuid()) @db.Uuid
+  userId                String   @db.Uuid // ✅ Already correct
+  fileName              String
+  fileType              String
+  predictedDocumentType String?
+  filePath              String   @unique
+  status                String   @default("pending")
+  fraudDetected         Boolean  @default(false)
+  missingFields         String[]
+  fraudReasons          String[] // ✅ Store fraud reasons as an array
+  confidence            Int?
+  recommendations       String?
+  createdAt             DateTime @default(now())
+  user                  User     @relation(fields: [userId], references: [id])
+}
+
+model GeneratedDocument {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String?  @db.Uuid // Optional for guests
+  visaType     String
+  documentType String
+  format       String
+  pageCount    Int
+  content      String   @db.Text // Store full document content
+  pdfPath      String   @unique // Path to generated PDF
+  createdAt    DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+}
