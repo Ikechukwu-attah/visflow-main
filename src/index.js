@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import authRoutes from "./services/auth/routes/auth-routes.js";
-const authRoutes = require("./routes/authRoutes");
+import documentAnalysisRoutes from "./services/documentAnalysis/routes/document-analysis-routes.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -9,6 +9,7 @@ app.use(express.json());
 app.use(cors());
 
 app.use("/api/auth", authRoutes);
+app.use("/api/document", documentAnalysisRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
