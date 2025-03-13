@@ -4,8 +4,8 @@ import { v4 as uuidv4 } from "uuid";
 import { PDFDocument } from "pdf-lib";
 import { PrismaClient } from "@prisma/client";
 import OpenAI from "openai";
-import pdfGenerationService from "./pdfGenerationService.js";
-import documentRequirementService from "./documentRequirementService.js";
+import { generatePDF } from "./pdf-generation-service.js";
+import { getRequiredDocuments } from "../../documentRequirement/services/document-requirement-service.js";
 
 const prisma = new PrismaClient();
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -19,9 +19,7 @@ export const generateAndMergeDocuments = async (
   console.log("📌 Generating documents for:", visaType);
 
   // ✅ Step 1: Fetch Required Documents for Visa Type
-  const requiredDocs = await documentRequirementService.getRequiredDocuments(
-    visaType
-  );
+  const requiredDocs = await getRequiredDocuments(visaType);
   if (!requiredDocs || requiredDocs.requiredDocuments.length === 0) {
     throw new Error("No required documents found.");
   }
@@ -86,10 +84,7 @@ ${formattedUploads}
       throw new Error("AI returned incomplete document structure.");
     }
 
-    const pdfPath = await pdfGenerationService.generatePDF(
-      doc.documentType,
-      doc.content
-    );
+    const pdfPath = await generatePDF(doc.documentType, doc.content);
 
     const savedDoc = await prisma.generatedDocument.create({
       data: {
